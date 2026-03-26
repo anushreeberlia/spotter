@@ -23,12 +23,6 @@ targets:
           - "Resources/Assets.xcassets"
     resources:
       - path: Spotter/Resources/Assets.xcassets
-      - path: Spotter/Plan/Templates
-        buildPhase: resources
-      - path: Spotter/Data/ReferenceData
-        buildPhase: resources
-      - path: Spotter/Audio/Cues
-        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.spotter.app
