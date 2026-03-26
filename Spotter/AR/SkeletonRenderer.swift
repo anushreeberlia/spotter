@@ -1,6 +1,7 @@
 import Foundation
 import RealityKit
 import simd
+import UIKit
 
 class SkeletonRenderer {
 

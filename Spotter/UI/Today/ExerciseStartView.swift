@@ -10,7 +10,7 @@ struct ExerciseStartView: View {
 
             Image(systemName: exercise.category.iconName)
                 .font(.system(size: 64))
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(Color.accentColor)
 
             Text(exercise.displayName)
                 .font(.largeTitle.bold())

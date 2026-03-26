@@ -19,7 +19,7 @@ struct PlanOverviewView: View {
                         }
 
                         Section("Training Days") {
-                            ForEach(plan.days.sorted(by: { $0.dayIndex < $1.dayIndex }), id: \.dayIndex) { day in
+                            ForEach(Array(plan.days.sorted(by: { $0.dayIndex < $1.dayIndex })), id: \.dayIndex) { day in
                                 NavigationLink {
                                     DayDetailView(day: day)
                                 } label: {
@@ -50,25 +50,34 @@ struct PlanOverviewView: View {
 struct DayDetailView: View {
     let day: WorkoutDay
 
+    private var sortedExercises: [PlannedExercise] {
+        day.exercises.sorted { $0.orderIndex < $1.orderIndex }
+    }
+
     var body: some View {
         List {
-            ForEach(day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }), id: \.exerciseId) { exercise in
-                if let config = ExerciseLibrary.shared.exercise(for: exercise.exerciseId) {
-                    HStack {
-                        Image(systemName: config.category.iconName)
-                            .foregroundStyle(.accentColor)
-                            .frame(width: 32)
-                        VStack(alignment: .leading) {
-                            Text(config.displayName)
-                                .font(.headline)
-                            Text("\(exercise.sets) sets × \(exercise.repsTarget) reps • \(exercise.restSeconds)s rest")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
+            ForEach(Array(sortedExercises), id: \.exerciseId) { exercise in
+                exerciseRow(exercise)
             }
         }
         .navigationTitle(day.dayName)
+    }
+
+    @ViewBuilder
+    private func exerciseRow(_ exercise: PlannedExercise) -> some View {
+        if let config = ExerciseLibrary.shared.exercise(for: exercise.exerciseId) {
+            HStack {
+                Image(systemName: config.category.iconName)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 32)
+                VStack(alignment: .leading) {
+                    Text(config.displayName)
+                        .font(.headline)
+                    Text("\(exercise.sets) sets × \(exercise.repsTarget) reps • \(exercise.restSeconds)s rest")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 }

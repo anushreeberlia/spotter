@@ -1,8 +1,8 @@
 name: Spotter
 options:
-  bundleIdPrefix: com.spotter
+  bundleIdPrefix: com.anushreeberlia
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "18.0"
   xcodeVersion: "15.0"
   minimumXcodeGenVersion: "2.35"
 
@@ -25,7 +25,7 @@ targets:
       - path: Spotter/Resources/Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.spotter.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.anushreeberlia.spotter
         DEVELOPMENT_TEAM: ""
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

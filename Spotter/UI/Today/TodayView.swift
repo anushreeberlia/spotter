@@ -24,7 +24,7 @@ struct TodayView: View {
                                     } label: {
                                         HStack {
                                             Image(systemName: config.category.iconName)
-                                                .foregroundStyle(.accentColor)
+                                                .foregroundStyle(Color.accentColor)
                                                 .frame(width: 32)
                                             VStack(alignment: .leading) {
                                                 Text(config.displayName)
@@ -80,7 +80,7 @@ struct QuickStartView: View {
                         } label: {
                             HStack {
                                 Image(systemName: group.category.iconName)
-                                    .foregroundStyle(.accentColor)
+                                    .foregroundStyle(Color.accentColor)
                                     .frame(width: 32)
                                 VStack(alignment: .leading) {
                                     Text(exercise.displayName)
@@ -92,7 +92,7 @@ struct QuickStartView: View {
                                 Spacer()
                                 Image(systemName: "play.circle.fill")
                                     .font(.title2)
-                                    .foregroundStyle(.accentColor)
+                                    .foregroundStyle(Color.accentColor)
                             }
                         }
                         .tint(.primary)
