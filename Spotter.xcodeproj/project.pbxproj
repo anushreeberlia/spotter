@@ -41,6 +41,7 @@
 		2B0000200000000000000001 /* WorkoutSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0000200000000000000001 /* WorkoutSummaryView.swift */; };
 		2B0000210000000000000001 /* WorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0000210000000000000001 /* WorkoutView.swift */; };
 		2B0000220000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2A0000220000000000000001 /* Assets.xcassets */; };
+		2B0000230000000000000001 /* FormReferencePose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A0000250000000000000001 /* FormReferencePose.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -80,6 +81,7 @@
 		2A0000220000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2A0000230000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2A0000240000000000000001 /* Spotter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Spotter.entitlements; sourceTree = "<group>"; };
+		2A0000250000000000000001 /* FormReferencePose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormReferencePose.swift; sourceTree = "<group>"; };
 		2A0000990000000000000001 /* Spotter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spotter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -167,6 +169,7 @@
 			children = (
 				2A00000A0000000000000001 /* AngleCalculator.swift */,
 				2A00000B0000000000000001 /* FormChecker.swift */,
+				2A0000250000000000000001 /* FormReferencePose.swift */,
 				2A00000C0000000000000001 /* PoseFrame.swift */,
 				2A00000D0000000000000001 /* ProgressionEngine.swift */,
 				2A00000E0000000000000001 /* RepCounter.swift */,
@@ -375,6 +378,7 @@
 				2B00001F0000000000000001 /* SetSummaryView.swift in Sources */,
 				2B0000200000000000000001 /* WorkoutSummaryView.swift in Sources */,
 				2B0000210000000000000001 /* WorkoutView.swift in Sources */,
+				2B0000230000000000000001 /* FormReferencePose.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

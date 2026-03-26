@@ -1,4 +1,5 @@
 import Foundation
+import simd
 
 /// Defines the tracking configuration for an exercise.
 protocol ExerciseConfig {
@@ -23,10 +24,22 @@ protocol ExerciseConfig {
 
     /// Joints to highlight in the AR overlay for this exercise.
     var keyJoints: [JointName] { get }
+
+    /// World-space joints for the green “form avatar” beside the user. `depth` is 0 = top of rep, 1 = bottom.
+    func formAvatarJoints(depth: Float, userFrame: PoseFrame) -> [JointName: SIMD3<Float>]?
+
+    /// Whether this exercise shows the green reference figure when data is available.
+    var hasFormAvatar: Bool { get }
 }
 
 extension ExerciseConfig {
     var isIsometric: Bool { false }
+
+    func formAvatarJoints(depth: Float, userFrame: PoseFrame) -> [JointName: SIMD3<Float>]? {
+        nil
+    }
+
+    var hasFormAvatar: Bool { false }
 }
 
 enum ExerciseCategory: String, CaseIterable {
@@ -48,7 +61,7 @@ enum ExerciseCategory: String, CaseIterable {
         switch self {
         case .legs: "figure.walk"
         case .push: "figure.strengthtraining.traditional"
-        case .pull: "figure.rowing"
+        case .pull: "dumbbell.fill"
         case .core: "figure.core.training"
         }
     }

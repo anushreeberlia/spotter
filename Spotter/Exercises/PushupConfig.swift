@@ -1,4 +1,5 @@
 import Foundation
+import simd
 
 struct PushupConfig: ExerciseConfig {
     let id = "pushup"
@@ -17,6 +18,12 @@ struct PushupConfig: ExerciseConfig {
 
     var formRules: [FormRule] {
         [PushupHipSagRule(), PushupElbowFlareRule()]
+    }
+
+    var hasFormAvatar: Bool { true }
+
+    func formAvatarJoints(depth: Float, userFrame: PoseFrame) -> [JointName: SIMD3<Float>]? {
+        FormReferencePose.pushup(depth: depth, userFrame: userFrame)
     }
 }
 

@@ -3,18 +3,37 @@ import RealityKit
 import simd
 import UIKit
 
+enum SkeletonRole {
+    case user
+    /// Semi-transparent green coach skeleton beside the user.
+    case formReference
+}
+
 class SkeletonRenderer {
 
     private var arView: ARView?
     private let rootAnchor = AnchorEntity()
     private var jointEntities: [JointName: ModelEntity] = [:]
     private var boneEntities: [String: ModelEntity] = [:]
+    private let role: SkeletonRole
 
-    /// Joint colors: green = good form, red = correction needed.
+    /// Joint colors: green = good form, red = correction needed (user skeleton only).
     private(set) var jointColors: [JointName: JointColor] = [:]
 
-    private let jointRadius: Float = 0.025
-    private let boneRadius: Float = 0.01
+    private let jointRadius: Float
+    private let boneRadius: Float
+
+    init(role: SkeletonRole = .user) {
+        self.role = role
+        switch role {
+        case .user:
+            jointRadius = 0.025
+            boneRadius = 0.01
+        case .formReference:
+            jointRadius = 0.02
+            boneRadius = 0.008
+        }
+    }
 
     /// Bones defined as pairs of joints to connect with lines.
     private static let bonePairs: [(JointName, JointName)] = [
@@ -52,8 +71,8 @@ class SkeletonRenderer {
             entity.position = position
             entity.isEnabled = true
 
-            let color = jointColors[joint] ?? .normal
-            entity.model?.materials = [SimpleMaterial(color: color.uiColor, isMetallic: false)]
+            let color = materialColor(for: joint)
+            entity.model?.materials = [SimpleMaterial(color: color, isMetallic: false)]
         }
 
         for (a, b) in Self.bonePairs {
@@ -83,10 +102,22 @@ class SkeletonRenderer {
 
     // MARK: - Private
 
+    private func materialColor(for joint: JointName) -> UIColor {
+        if let jc = jointColors[joint] {
+            return jc.uiColor
+        }
+        switch role {
+        case .user:
+            return JointColor.normal.uiColor
+        case .formReference:
+            return UIColor.systemGreen.withAlphaComponent(0.92)
+        }
+    }
+
     private func createJointEntities() {
         for joint in JointName.allCases {
             let mesh = MeshResource.generateSphere(radius: jointRadius)
-            let material = SimpleMaterial(color: .cyan, isMetallic: false)
+            let material = SimpleMaterial(color: JointColor.normal.uiColor, isMetallic: false)
             let entity = ModelEntity(mesh: mesh, materials: [material])
             entity.isEnabled = false
             rootAnchor.addChild(entity)
@@ -98,7 +129,15 @@ class SkeletonRenderer {
         for (a, b) in Self.bonePairs {
             let key = "\(a.rawValue)-\(b.rawValue)"
             let mesh = MeshResource.generateBox(size: [boneRadius * 2, boneRadius * 2, 0.01])
-            let material = SimpleMaterial(color: .cyan.withAlphaComponent(0.6), isMetallic: false)
+            let boneUIColor: UIColor = {
+                switch role {
+                case .user:
+                    return UIColor.cyan.withAlphaComponent(0.6)
+                case .formReference:
+                    return UIColor.systemGreen.withAlphaComponent(0.42)
+                }
+            }()
+            let material = SimpleMaterial(color: boneUIColor, isMetallic: false)
             let entity = ModelEntity(mesh: mesh, materials: [material])
             entity.isEnabled = false
             rootAnchor.addChild(entity)

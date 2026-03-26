@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Main AR workout screen — shows camera feed with skeleton overlay and live stats.
 struct WorkoutView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var sessionManager = ARSessionManager()
     @State private var repCounter = RepCounter()
     @State private var formChecker = FormChecker()
@@ -11,8 +12,9 @@ struct WorkoutView: View {
 
     var body: some View {
         ZStack {
-            // AR camera feed with skeleton
+            // AR camera feed with skeleton — needs explicit frame; `.zero` in UIKit often stays black in SwiftUI until sized.
             ARViewContainer(sessionManager: sessionManager)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
 
             // Top overlay: exercise name + tracking status
@@ -25,11 +27,17 @@ struct WorkoutView: View {
                         Text(sessionManager.trackingMessage)
                             .font(.caption)
                             .foregroundStyle(sessionManager.isTracking ? .green : .yellow)
+                        if exercise.hasFormAvatar {
+                            Text("Green figure = target form")
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.85))
+                        }
                     }
                     Spacer()
                     Button("End") {
                         sessionManager.pauseSession()
                         isActive = false
+                        dismiss()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.red)
@@ -77,6 +85,7 @@ struct WorkoutView: View {
             }
         }
         .onAppear {
+            sessionManager.exerciseForFormAvatar = exercise
             repCounter.configure(
                 topThreshold: exercise.topThreshold,
                 bottomThreshold: exercise.bottomThreshold
@@ -85,6 +94,7 @@ struct WorkoutView: View {
             isActive = true
         }
         .onDisappear {
+            sessionManager.exerciseForFormAvatar = nil
             sessionManager.pauseSession()
         }
         .onChange(of: sessionManager.currentFrame?.timestamp) {

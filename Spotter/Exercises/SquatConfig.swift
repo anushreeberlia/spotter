@@ -25,6 +25,12 @@ struct SquatConfig: ExerciseConfig {
             SquatKneeTrackingRule(),
         ]
     }
+
+    var hasFormAvatar: Bool { true }
+
+    func formAvatarJoints(depth: Float, userFrame: PoseFrame) -> [JointName: SIMD3<Float>]? {
+        FormReferencePose.squat(depth: depth, userFrame: userFrame)
+    }
 }
 
 // MARK: - Squat Form Rules

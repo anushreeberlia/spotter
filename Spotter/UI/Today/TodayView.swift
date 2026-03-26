@@ -1,10 +1,15 @@
 import SwiftUI
 import SwiftData
 
+/// Binds full-screen workout so the cover always has an exercise id (avoids an empty cover = black screen).
+private struct WorkoutPresentation: Identifiable {
+    let exerciseId: String
+    var id: String { exerciseId }
+}
+
 struct TodayView: View {
     @Query private var plans: [WorkoutPlan]
-    @State private var selectedExercise: String?
-    @State private var showingWorkout = false
+    @State private var workoutPresentation: WorkoutPresentation?
 
     private var activePlan: WorkoutPlan? {
         plans.first { $0.isActive }
@@ -19,8 +24,7 @@ struct TodayView: View {
                             ForEach(today.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }), id: \.exerciseId) { planned in
                                 if let config = ExerciseLibrary.shared.exercise(for: planned.exerciseId) {
                                     Button {
-                                        selectedExercise = planned.exerciseId
-                                        showingWorkout = true
+                                        workoutPresentation = WorkoutPresentation(exerciseId: planned.exerciseId)
                                     } label: {
                                         HStack {
                                             Image(systemName: config.category.iconName)
@@ -46,16 +50,24 @@ struct TodayView: View {
                 } else {
                     // No active plan — show quick start with all exercises
                     QuickStartView(onSelect: { exerciseId in
-                        selectedExercise = exerciseId
-                        showingWorkout = true
+                        workoutPresentation = WorkoutPresentation(exerciseId: exerciseId)
                     })
                 }
             }
             .navigationTitle("Today")
-            .fullScreenCover(isPresented: $showingWorkout) {
-                if let id = selectedExercise,
-                   let config = ExerciseLibrary.shared.exercise(for: id) {
+            .fullScreenCover(item: $workoutPresentation) { presentation in
+                if let config = ExerciseLibrary.shared.exercise(for: presentation.exerciseId) {
                     WorkoutView(exercise: config)
+                } else {
+                    VStack(spacing: 16) {
+                        Text("Couldn’t load that exercise.")
+                            .font(.headline)
+                        Button("Close") {
+                            workoutPresentation = nil
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding()
                 }
             }
         }
