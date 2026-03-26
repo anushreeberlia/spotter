@@ -1,42 +1,51 @@
 import SwiftUI
 
-/// Main AR workout screen — shows camera feed with skeleton overlay and live stats.
+private enum WorkoutMode: String, CaseIterable {
+    case formDemo = "Form demo"
+    case track = "Track me"
+}
+
+/// Workout screen: optional full-screen form loop (no camera), or live AR tracking on you.
 struct WorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var sessionManager = ARSessionManager()
     @State private var repCounter = RepCounter()
     @State private var formChecker = FormChecker()
-    @State private var isActive = false
+    @State private var mode: WorkoutMode = .formDemo
 
     let exercise: any ExerciseConfig
 
     var body: some View {
         ZStack {
-            // AR camera feed with skeleton — needs explicit frame; `.zero` in UIKit often stays black in SwiftUI until sized.
-            ARViewContainer(sessionManager: sessionManager)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
+            if mode == .formDemo, exercise.supportsFormDemo {
+                ExerciseFormAnimationView(exercise: exercise)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+            } else {
+                ARViewContainer(sessionManager: sessionManager)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+            }
 
-            // Top overlay: exercise name + tracking status
             VStack {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(exercise.displayName)
                             .font(.title2.bold())
                             .foregroundStyle(.white)
-                        Text(sessionManager.trackingMessage)
-                            .font(.caption)
-                            .foregroundStyle(sessionManager.isTracking ? .green : .yellow)
-                        if exercise.hasFormAvatar {
-                            Text("Green figure = target form")
-                                .font(.caption2)
-                                .foregroundStyle(.white.opacity(0.85))
+                        if mode == .track {
+                            Text(sessionManager.trackingMessage)
+                                .font(.caption)
+                                .foregroundStyle(sessionManager.isTracking ? .green : .yellow)
+                        } else if exercise.supportsFormDemo {
+                            Text("Looping target movement — no camera")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                     Spacer()
                     Button("End") {
                         sessionManager.pauseSession()
-                        isActive = false
                         dismiss()
                     }
                     .buttonStyle(.borderedProminent)
@@ -45,60 +54,82 @@ struct WorkoutView: View {
                 .padding()
                 .background(.ultraThinMaterial)
 
+                Picker("Mode", selection: $mode) {
+                    if exercise.supportsFormDemo {
+                        Text(WorkoutMode.formDemo.rawValue).tag(WorkoutMode.formDemo)
+                    }
+                    Text(WorkoutMode.track.rawValue).tag(WorkoutMode.track)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .background(.ultraThinMaterial)
+
+                if !exercise.supportsFormDemo {
+                    Text("Form demo isn’t set up for this exercise yet — use Track me.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
+                        .padding(.top, 4)
+                }
+
                 Spacer()
 
-                // Bottom overlay: rep count + phase + angles + corrections
-                VStack(spacing: 12) {
-                    // Form corrections
-                    ForEach(formChecker.activeCorrections) { correction in
-                        HStack {
-                            Image(systemName: correction.severity == .error ? "exclamationmark.triangle.fill" : "info.circle.fill")
-                                .foregroundStyle(correction.severity == .error ? .red : .yellow)
-                            Text(correction.message)
-                                .font(.headline)
-                                .foregroundStyle(.white)
+                if mode == .track {
+                    VStack(spacing: 12) {
+                        ForEach(formChecker.activeCorrections) { correction in
+                            HStack {
+                                Image(systemName: correction.severity == .error ? "exclamationmark.triangle.fill" : "info.circle.fill")
+                                    .foregroundStyle(correction.severity == .error ? .red : .yellow)
+                                Text(correction.message)
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                (correction.severity == .error ? Color.red : Color.yellow)
+                                    .opacity(0.3)
+                            )
+                            .clipShape(Capsule())
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            (correction.severity == .error ? Color.red : Color.yellow)
-                                .opacity(0.3)
-                        )
-                        .clipShape(Capsule())
-                    }
 
-                    // Stats bar
-                    HStack(spacing: 24) {
-                        StatBadge(label: "Reps", value: "\(repCounter.repCount)")
-                        StatBadge(label: "Phase", value: repCounter.phase.displayName)
-                        StatBadge(label: "Angle", value: "\(Int(repCounter.currentAngle))°")
-                        StatBadge(
-                            label: "Form",
-                            value: "\(Int(formChecker.frameFormScore * 100))%"
-                        )
+                        HStack(spacing: 24) {
+                            StatBadge(label: "Reps", value: "\(repCounter.repCount)")
+                            StatBadge(label: "Phase", value: repCounter.phase.displayName)
+                            StatBadge(label: "Angle", value: "\(Int(repCounter.currentAngle))°")
+                            StatBadge(
+                                label: "Form",
+                                value: "\(Int(formChecker.frameFormScore * 100))%"
+                            )
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
-                .padding()
             }
         }
         .onAppear {
-            sessionManager.exerciseForFormAvatar = exercise
+            if !exercise.supportsFormDemo {
+                mode = .track
+            }
             repCounter.configure(
                 topThreshold: exercise.topThreshold,
                 bottomThreshold: exercise.bottomThreshold
             )
             formChecker.configure(rules: exercise.formRules)
-            isActive = true
+        }
+        .onChange(of: mode) { _, newMode in
+            if newMode == .formDemo {
+                sessionManager.pauseSession()
+            }
         }
         .onDisappear {
-            sessionManager.exerciseForFormAvatar = nil
             sessionManager.pauseSession()
         }
         .onChange(of: sessionManager.currentFrame?.timestamp) {
-            guard let frame = sessionManager.currentFrame else { return }
+            guard mode == .track, let frame = sessionManager.currentFrame else { return }
             let angle = exercise.primaryAngle(frame)
             repCounter.update(angle: angle)
             formChecker.evaluate(frame: frame, phase: repCounter.phase)

@@ -22,8 +22,14 @@ struct PushupConfig: ExerciseConfig {
 
     var hasFormAvatar: Bool { true }
 
+    var supportsFormDemo: Bool { true }
+
     func formAvatarJoints(depth: Float, userFrame: PoseFrame) -> [JointName: SIMD3<Float>]? {
         FormReferencePose.pushup(depth: depth, userFrame: userFrame)
+    }
+
+    func demoReferenceJoints(depth: Float) -> [JointName: SIMD3<Float>]? {
+        FormReferencePose.pushupDemonstration(depth: depth)
     }
 }
 

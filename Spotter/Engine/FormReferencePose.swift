@@ -38,10 +38,10 @@ enum FormReferencePose {
 
         let lh = lhStand
         let rh = rhStand
-        let lk = lerp(lkStand, lkDeep, d)
-        let rk = lerp(rkStand, rkDeep, d)
-        let la = lerp(laStand, laDeep, d)
-        let ra = lerp(raStand, raDeep, d)
+        let lk = lerp3(lkStand, lkDeep, d)
+        let rk = lerp3(rkStand, rkDeep, d)
+        let la = lerp3(laStand, laDeep, d)
+        let ra = lerp3(raStand, raDeep, d)
 
         let chestS = SIMD3<Float>(0, 0.36, 0.03)
         let chestD = SIMD3<Float>(0, 0.38, 0.14)
@@ -57,9 +57,9 @@ enum FormReferencePose {
         let lwS = SIMD3<Float>(-0.3, -0.02, 0.05)
         let rwS = SIMD3<Float>(0.3, -0.02, 0.05)
 
-        let chestD2 = lerp(chestS, chestD, d)
-        let neckD2 = lerp(neckS, neckD, d)
-        let headD2 = lerp(headS, headD, d)
+        let chestD2 = lerp3(chestS, chestD, d)
+        let neckD2 = lerp3(neckS, neckD, d)
+        let headD2 = lerp3(headS, headD, d)
 
         func w(_ local: SIMD3<Float>) -> SIMD3<Float> {
             origin + (right * local.x + up * local.y + forward * local.z) * scale
@@ -82,7 +82,7 @@ enum FormReferencePose {
         joints[.rightElbow] = w(reS * scale)
         joints[.leftWrist] = w(lwS * scale)
         joints[.rightWrist] = w(rwS * scale)
-        joints[.spine] = w(lerp(SIMD3(0, 0.2, 0.02), SIMD3(0, 0.22, 0.1), d) * scale)
+        joints[.spine] = w(lerp3(SIMD3(0, 0.2, 0.02), SIMD3(0, 0.22, 0.1), d) * scale)
         return joints
     }
 
@@ -99,16 +99,126 @@ enum FormReferencePose {
 
         let hipY: Float = 0.12
         let shoulderY: Float = 0.22
-        let chestZ = lerp(Float(0.02), Float(0.18), d)
+        let chestZ = lerpF(0.02, 0.18, d)
 
         let ls = SIMD3<Float>(-0.18, shoulderY, chestZ)
         let rs = SIMD3<Float>(0.18, shoulderY, chestZ)
-        let le = lerp(SIMD3<Float>(-0.2, 0.1, 0.06), SIMD3<Float>(-0.22, 0.02, 0.14), d)
-        let re = lerp(SIMD3<Float>(0.2, 0.1, 0.06), SIMD3<Float>(0.22, 0.02, 0.14), d)
-        let lw = lerp(SIMD3<Float>(-0.24, -0.02, 0.08), SIMD3<Float>(-0.26, -0.08, 0.16), d)
-        let rw = lerp(SIMD3<Float>(0.24, -0.02, 0.08), SIMD3<Float>(0.26, -0.08, 0.16), d)
+        let le = lerp3(SIMD3<Float>(-0.2, 0.1, 0.06), SIMD3<Float>(-0.22, 0.02, 0.14), d)
+        let re = lerp3(SIMD3<Float>(0.2, 0.1, 0.06), SIMD3<Float>(0.22, 0.02, 0.14), d)
+        let lw = lerp3(SIMD3<Float>(-0.24, -0.02, 0.08), SIMD3<Float>(-0.26, -0.08, 0.16), d)
+        let rw = lerp3(SIMD3<Float>(0.24, -0.02, 0.08), SIMD3<Float>(0.26, -0.08, 0.16), d)
 
-        let hipZ = lerp(Float(0.04), Float(0.12), d)
+        let hipZ = lerpF(0.04, 0.12, d)
+        let hips = SIMD3<Float>(0, hipY, hipZ)
+
+        func w(_ local: SIMD3<Float>) -> SIMD3<Float> {
+            origin + (right * local.x + up * local.y + forward * local.z) * scale
+        }
+
+        var joints: [JointName: SIMD3<Float>] = [:]
+        joints[.hips] = w(hips * scale)
+        joints[.leftHip] = w(SIMD3(-0.06, hipY, hipZ) * scale)
+        joints[.rightHip] = w(SIMD3(0.06, hipY, hipZ) * scale)
+        joints[.chest] = w(SIMD3(0, 0.18, chestZ * 0.9) * scale)
+        joints[.neck] = w(SIMD3(0, 0.26, chestZ * 0.95) * scale)
+        joints[.head] = w(SIMD3(0, 0.34, chestZ) * scale)
+        joints[.leftShoulder] = w(ls * scale)
+        joints[.rightShoulder] = w(rs * scale)
+        joints[.leftElbow] = w(le * scale)
+        joints[.rightElbow] = w(re * scale)
+        joints[.leftWrist] = w(lw * scale)
+        joints[.rightWrist] = w(rw * scale)
+        let ankleZ = hipZ + Float(0.02)
+        joints[.leftKnee] = w(SIMD3(-0.05, 0.02, hipZ) * scale)
+        joints[.rightKnee] = w(SIMD3(0.05, 0.02, hipZ) * scale)
+        joints[.leftAnkle] = w(SIMD3(-0.06, 0.01, ankleZ) * scale)
+        joints[.rightAnkle] = w(SIMD3(0.06, 0.01, ankleZ) * scale)
+        joints[.spine] = w(SIMD3(0, 0.15, chestZ * 0.85) * scale)
+        return joints
+    }
+
+    // MARK: - Full-screen demo (no user / camera; fixed stage in front of default view)
+
+    /// Centered reference squat for looping form demo.
+    static func squatDemonstration(depth: Float) -> [JointName: SIMD3<Float>]? {
+        let right = SIMD3<Float>(1, 0, 0)
+        let up = SIMD3<Float>(0, 1, 0)
+        let forward = SIMD3<Float>(0, 0, -1)
+        let origin = SIMD3<Float>(0, 1.02, -1.55)
+        let scale: Float = 1.0
+        let d = simd_clamp(depth, 0, 1)
+
+        let lhStand = SIMD3<Float>(-0.11, 0, 0.02)
+        let rhStand = SIMD3<Float>(0.11, 0, 0.02)
+        let lkStand = SIMD3<Float>(-0.11, -0.42, 0.05)
+        let rkStand = SIMD3<Float>(0.11, -0.42, 0.05)
+        let laStand = SIMD3<Float>(-0.11, -0.82, 0.06)
+        let raStand = SIMD3<Float>(0.11, -0.82, 0.06)
+        let lkDeep = SIMD3<Float>(-0.2, -0.36, 0.22)
+        let rkDeep = SIMD3<Float>(0.2, -0.36, 0.22)
+        let laDeep = SIMD3<Float>(-0.16, -0.76, 0.32)
+        let raDeep = SIMD3<Float>(0.16, -0.76, 0.32)
+
+        let lk = lerp3(lkStand, lkDeep, d)
+        let rk = lerp3(rkStand, rkDeep, d)
+        let la = lerp3(laStand, laDeep, d)
+        let ra = lerp3(raStand, raDeep, d)
+
+        let chestD2 = lerp3(SIMD3(0, 0.36, 0.03), SIMD3(0, 0.38, 0.14), d)
+        let neckD2 = lerp3(SIMD3(0, 0.44, 0.04), SIMD3(0, 0.45, 0.16), d)
+        let headD2 = lerp3(SIMD3(0, 0.52, 0.05), SIMD3(0, 0.53, 0.18), d)
+
+        let lsS = SIMD3<Float>(-0.2, 0.28, 0.02)
+        let rsS = SIMD3<Float>(0.2, 0.28, 0.02)
+        let leS = SIMD3<Float>(-0.26, 0.12, 0.04)
+        let reS = SIMD3<Float>(0.26, 0.12, 0.04)
+        let lwS = SIMD3<Float>(-0.3, -0.02, 0.05)
+        let rwS = SIMD3<Float>(0.3, -0.02, 0.05)
+
+        func w(_ local: SIMD3<Float>) -> SIMD3<Float> {
+            origin + (right * local.x + up * local.y + forward * local.z) * scale
+        }
+
+        var joints: [JointName: SIMD3<Float>] = [:]
+        joints[.hips] = w(SIMD3(0, 0, 0))
+        joints[.leftHip] = w(lhStand * scale)
+        joints[.rightHip] = w(rhStand * scale)
+        joints[.leftKnee] = w(lk * scale)
+        joints[.rightKnee] = w(rk * scale)
+        joints[.leftAnkle] = w(la * scale)
+        joints[.rightAnkle] = w(ra * scale)
+        joints[.chest] = w(chestD2 * scale)
+        joints[.neck] = w(neckD2 * scale)
+        joints[.head] = w(headD2 * scale)
+        joints[.leftShoulder] = w(lsS * scale)
+        joints[.rightShoulder] = w(rsS * scale)
+        joints[.leftElbow] = w(leS * scale)
+        joints[.rightElbow] = w(reS * scale)
+        joints[.leftWrist] = w(lwS * scale)
+        joints[.rightWrist] = w(rwS * scale)
+        joints[.spine] = w(lerp3(SIMD3(0, 0.2, 0.02), SIMD3(0, 0.22, 0.1), d) * scale)
+        return joints
+    }
+
+    /// Centered reference push-up for looping form demo.
+    static func pushupDemonstration(depth: Float) -> [JointName: SIMD3<Float>]? {
+        let right = SIMD3<Float>(1, 0, 0)
+        let up = SIMD3<Float>(0, 1, 0)
+        let forward = SIMD3<Float>(0, 0, -1)
+        let origin = SIMD3<Float>(0, 0.88, -1.45)
+        let scale: Float = 1.0
+        let d = simd_clamp(depth, 0, 1)
+
+        let hipY: Float = 0.12
+        let shoulderY: Float = 0.22
+        let chestZ = lerpF(0.02, 0.18, d)
+        let ls = SIMD3<Float>(-0.18, shoulderY, chestZ)
+        let rs = SIMD3<Float>(0.18, shoulderY, chestZ)
+        let le = lerp3(SIMD3<Float>(-0.2, 0.1, 0.06), SIMD3<Float>(-0.22, 0.02, 0.14), d)
+        let re = lerp3(SIMD3<Float>(0.2, 0.1, 0.06), SIMD3<Float>(0.22, 0.02, 0.14), d)
+        let lw = lerp3(SIMD3<Float>(-0.24, -0.02, 0.08), SIMD3<Float>(-0.26, -0.08, 0.16), d)
+        let rw = lerp3(SIMD3<Float>(0.24, -0.02, 0.08), SIMD3<Float>(0.26, -0.08, 0.16), d)
+        let hipZ = lerpF(0.04, 0.12, d)
         let hips = SIMD3<Float>(0, hipY, hipZ)
 
         func w(_ local: SIMD3<Float>) -> SIMD3<Float> {
@@ -184,7 +294,11 @@ enum FormReferencePose {
         return total > 0.15 ? total / 0.55 : 1
     }
 
-    private static func lerp(_ a: SIMD3<Float>, _ b: SIMD3<Float>, _ t: Float) -> SIMD3<Float> {
+    private static func lerp3(_ a: SIMD3<Float>, _ b: SIMD3<Float>, _ t: Float) -> SIMD3<Float> {
+        a + (b - a) * t
+    }
+
+    private static func lerpF(_ a: Float, _ b: Float, _ t: Float) -> Float {
         a + (b - a) * t
     }
 }

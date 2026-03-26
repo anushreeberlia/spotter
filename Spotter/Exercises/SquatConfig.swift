@@ -28,8 +28,14 @@ struct SquatConfig: ExerciseConfig {
 
     var hasFormAvatar: Bool { true }
 
+    var supportsFormDemo: Bool { true }
+
     func formAvatarJoints(depth: Float, userFrame: PoseFrame) -> [JointName: SIMD3<Float>]? {
         FormReferencePose.squat(depth: depth, userFrame: userFrame)
+    }
+
+    func demoReferenceJoints(depth: Float) -> [JointName: SIMD3<Float>]? {
+        FormReferencePose.squatDemonstration(depth: depth)
     }
 }
 

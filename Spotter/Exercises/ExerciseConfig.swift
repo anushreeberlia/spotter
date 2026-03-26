@@ -30,6 +30,11 @@ protocol ExerciseConfig {
 
     /// Whether this exercise shows the green reference figure when data is available.
     var hasFormAvatar: Bool { get }
+
+    /// Looping stick-figure demo (no camera). Depth 0 = top of rep, 1 = bottom.
+    func demoReferenceJoints(depth: Float) -> [JointName: SIMD3<Float>]?
+
+    var supportsFormDemo: Bool { get }
 }
 
 extension ExerciseConfig {
@@ -40,6 +45,12 @@ extension ExerciseConfig {
     }
 
     var hasFormAvatar: Bool { false }
+
+    func demoReferenceJoints(depth: Float) -> [JointName: SIMD3<Float>]? {
+        nil
+    }
+
+    var supportsFormDemo: Bool { false }
 }
 
 enum ExerciseCategory: String, CaseIterable {
